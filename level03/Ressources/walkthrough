@@ -1,0 +1,37 @@
+On remarque que ce binaire fait un XOR sur une chaine ("Q}|u`sfg~sf{}|a3")  et il verifie si le string devient "Congratulations!" pour donner un shell.
+D'apres le binaire on comprend que 
+charactere de string XOR (0x1337d00d - ce qu'on a envoye comme input) 
+s'execute et que la difference entre 0x1337d00d et ce qu'on a envoye doit etre inferieur ou egal a 21
+
+>>> def hex_to_string(arr):
+...     get_all = []
+...     for line in arr:
+...             splited_line = [line[i:i+2] for i in range(0, len(line),2)]
+...             get_all.append("".join([chr(int(x, 16)) for x in splited_line]))
+...     return (get_all)
+...
+>>> test1 = ['757c7d51', '67667360', '7b66737e', '33617c7d']
+>>> rev = [x[::-1] for x in hex_to_string(test1)]
+>>> rev
+['Q}|u', '`sfg', '~sf{', '}|a3']
+>>> "".join(rev)
+'Q}|u`sfg~sf{}|a3'
+>>> [ord(x) ^ 18 for x in "".join(rev)]
+[67, 111, 110, 103, 114, 97, 116, 117, 108, 97, 116, 105, 111, 110, 115, 33]
+>>> [chr(ord(x) ^ 18) for x in "".join(rev)]
+['C', 'o', 'n', 'g', 'r', 'a', 't', 'u', 'l', 'a', 't', 'i', 'o', 'n', 's', '!']
+>>>
+
+0x1337d00d - 18 = 322424827
+
+level03@OverRide:~$ ./level03
+***********************************
+*		level03		**
+***********************************
+Password:322424827
+$ id
+uid=1003(level03) gid=1003(level03) euid=1004(level04) egid=100(users) groups=1004(level04),100(users),1003(level03)
+$ cat /home/users/level04/.pass
+kgv3tkEb9h2mLkRsPkXRfc2mHbjMxQzvb2FrgKkf
+$
+

