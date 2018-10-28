@@ -7,7 +7,6 @@
 #include <sys/reg.h>
 #include <sys/prctl.h>
 #include <wait.h>
-#include "utils.h"
 
 ENABLE_TIMEOUT(60)
 
