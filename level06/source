@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ptrace.h>
+#include <stdint.h>
 
 int auth(char *username, unsigned int serial) {
 
@@ -24,7 +25,7 @@ int auth(char *username, unsigned int serial) {
 		if (username[i] <= 0x1f) return 1;
 		v2 = username[i];
 		v2 ^= v1;
-		v3 = (0x88233b2b * v2) >> 32;
+		v3 = 0x88233b2b * (uint64_t)v2 >> 32;
 		v4 = v2 - v3;
 		v4 = v4 >> 1;
 		v4 += v3;
@@ -33,7 +34,7 @@ int auth(char *username, unsigned int serial) {
 		v4 = v2 - v4;
 
 		v1 += v4;
-
+		v1 &= 0xffffffff;
 	}
 	if (v1 == serial)
 		return (0);
