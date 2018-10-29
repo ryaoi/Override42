@@ -1,0 +1,22 @@
+On a un binaire qui prend le username et serial.
+le serial va etre verifier avec leur fonction auth.
+Cette fonction va verifier si le serial correspond avec celle qui a ete genere dans la fonction auth, si c'est la meme il va nous lancer un shell.
+Donc si on arrive a recoder la fonction qui va generer le serial, on peut obtenir notre serial en fonction de user qu'on veut.
+
+┌─[ryaoi@e1r6p14] - [/tmp/Override42/level06] - [Mon Oct 29, 20:37]
+└─[$] <git:(master*)> ./a.out
+Enter login:
+ryaoi42
+serial:6233709
+
+level06@OverRide:~$ ./level06
+***********************************
+*		level06		  *
+***********************************
+-> Enter Login: ryaoi42
+***********************************
+***** NEW ACCOUNT DETECTED ********
+***********************************
+-> Enter Serial: 6233709
+Authenticated!
+$
