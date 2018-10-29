@@ -12,7 +12,9 @@ level08@OverRide:/tmp$ cat backups/home/users/level09/.pass
 fjAwpJNs2vvkFLRebEvAQ2hFZ4uQBWfHRsP62d8S
 level08@OverRide:/tmp$ ls -l backups/home/users/level09/.pass
 -rw-rw---- 1 level09 users 41 Oct 26 19:33 backups/home/users/level09/.pass
+level08@OverRide:/tmp$ grep '^users:' /etc/group
+users:x:100:level00,level01,level02,level03,level04,level05,level06,level07,level08,end,level09
 level08@OverRide:/tmp$
 
-Le group users ont le droit de lire donc.... ok!
+Les users qui sont dans le groupe 'users' ont le droit de lire donc.... ok!
 
